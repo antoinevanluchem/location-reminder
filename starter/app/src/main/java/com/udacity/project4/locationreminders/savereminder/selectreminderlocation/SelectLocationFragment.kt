@@ -1,17 +1,28 @@
 package com.udacity.project4.locationreminders.savereminder.selectreminderlocation
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import android.view.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.databinding.DataBindingUtil
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import timber.log.Timber
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
@@ -20,6 +31,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var binding: FragmentSelectLocationBinding
 
     private lateinit var map: GoogleMap
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -38,8 +50,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        // TODO: add the map setup implementation
-        // TODO: zoom to the user location after taking his permission
+        // Location
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+
         // TODO: add style to the map
         // TODO: put a marker to location that the user selected
 
@@ -47,6 +60,67 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         onLocationSelected()
         return binding.root
     }
+
+    //
+    // Location permission
+    //
+    private var requestLocationPermissionLauncher =
+        registerForActivityResult(
+        ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            Timber.i(
+                "ACCESS_FINE_LOCATION granted"
+            )
+            configureMapForAcceptedLocationPermission()
+        } else {
+            Timber.i(
+                "ACCESS_FINE_LOCATION denied"
+            )
+            Snackbar.make(
+                binding.selectLocationLayout,
+                R.string.location_required_error, Snackbar.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun requestLocationPermission() {
+        Timber.i("Request location permission")
+        requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+    private fun isPermissionGranted(): Boolean {
+        return checkSelfPermission(requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun moveCameraToCurrentLocation() {
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            if (location != null) {
+                map.moveCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        LatLng(
+                            location.latitude,
+                            location.longitude
+                        ), 15f
+                    )
+                )
+            }
+        }
+    }
+
+    private fun configureMapForAcceptedLocationPermission() {
+        map.setMyLocationEnabled(true)
+        moveCameraToCurrentLocation()
+    }
+
+    private fun enableMyLocation() {
+        if (isPermissionGranted()) {
+            configureMapForAcceptedLocationPermission()
+        } else {
+            requestLocationPermission()
+        }
+    }
+
 
     private fun onLocationSelected() {
         // TODO: When the user confirms on the selected location,
@@ -76,6 +150,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
+        Timber.i("OnMapReady called")
         map = googleMap
+
+        enableMyLocation()
     }
 }

@@ -34,11 +34,11 @@ class AuthenticationActivity : AppCompatActivity() {
 
         observeAuthenticationState()
         binding.loginButton.setOnClickListener {
-            launchLogInFlow()
+            login()
         }
     }
 
-    private var loginFlowLauncher =
+    private var loginLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 Timber.i(
@@ -50,7 +50,7 @@ class AuthenticationActivity : AppCompatActivity() {
             }
         }
 
-    private fun launchLogInFlow() {
+    private fun login() {
         val providers = arrayListOf(
             AuthUI.IdpConfig.EmailBuilder().build(), AuthUI.IdpConfig.GoogleBuilder().build()
         )
@@ -66,7 +66,7 @@ class AuthenticationActivity : AppCompatActivity() {
                 // TODO: should we keep this? Removing this line throws errors in logcat, but app works
                 .setIsSmartLockEnabled(false)
                 .build()
-        loginFlowLauncher.launch(intent)
+        loginLauncher.launch(intent)
     }
 
     /**
