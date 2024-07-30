@@ -58,8 +58,14 @@ class AuthenticationActivity : AppCompatActivity() {
             .setEmailButtonId(R.id.email_button).setGoogleButtonId(R.id.google_button).build()
 
         val intent =
-            AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers)
-                .setAuthMethodPickerLayout(layout).setTheme(R.style.AppTheme).build()
+            AuthUI.getInstance()
+                .createSignInIntentBuilder()
+                .setAvailableProviders(providers)
+                .setAuthMethodPickerLayout(layout)
+                .setTheme(R.style.AppTheme)
+                // TODO: should we keep this? Removing this line throws errors in logcat, but app works
+                .setIsSmartLockEnabled(false)
+                .build()
         loginFlowLauncher.launch(intent)
     }
 
