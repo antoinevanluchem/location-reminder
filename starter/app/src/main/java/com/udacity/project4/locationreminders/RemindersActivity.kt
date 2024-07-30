@@ -5,6 +5,7 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import com.udacity.project4.databinding.ActivityRemindersBinding
+import timber.log.Timber
 
 /**
  * The RemindersActivity that holds the reminders fragments
@@ -17,6 +18,7 @@ class RemindersActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityRemindersBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Timber.plant(Timber.DebugTree())
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
