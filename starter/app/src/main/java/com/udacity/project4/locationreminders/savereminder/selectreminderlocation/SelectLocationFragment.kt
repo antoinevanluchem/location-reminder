@@ -7,7 +7,9 @@ import android.os.Bundle
 import android.view.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Lifecycle
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -50,8 +52,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        // Location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+
+        setUpMenu()
 
         // TODO: add style to the map
         // TODO: put a marker to location that the user selected
@@ -121,32 +124,40 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
-
     private fun onLocationSelected() {
         // TODO: When the user confirms on the selected location,
         //  send back the selected location details to the view model
         //  and navigate back to the previous fragment to save the reminder and add the geofence
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.map_options, menu)
-    }
+    private fun setUpMenu() {
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.map_options, menu)
+            }
 
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        // TODO: Change the map type based on the user's selection.
-        R.id.normal_map -> {
-            true
-        }
-        R.id.hybrid_map -> {
-            true
-        }
-        R.id.satellite_map -> {
-            true
-        }
-        R.id.terrain_map -> {
-            true
-        }
-        else -> super.onOptionsItemSelected(item)
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.normal_map -> {
+                        map.mapType = GoogleMap.MAP_TYPE_NORMAL
+                        true
+                    }
+                    R.id.hybrid_map -> {
+                        map.mapType = GoogleMap.MAP_TYPE_HYBRID
+                        true
+                    }
+                    R.id.satellite_map -> {
+                        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+                        true
+                    }
+                    R.id.terrain_map -> {
+                        map.mapType = GoogleMap.MAP_TYPE_TERRAIN
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
