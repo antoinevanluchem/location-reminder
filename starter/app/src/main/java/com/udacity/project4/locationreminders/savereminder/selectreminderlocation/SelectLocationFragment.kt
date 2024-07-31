@@ -24,11 +24,12 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PointOfInterest
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
+import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
@@ -43,7 +44,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private var currentMarker: Marker? = null
+    private var currentPoi: PointOfInterest? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -63,6 +64,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         setUpMenu()
+
+        binding.saveLocationButton.setOnClickListener {
+            onLocationSelected()
+        }
 
         return binding.root
     }
@@ -130,9 +135,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     // Save Button
     //
     private fun onLocationSelected() {
-        // TODO: When the user confirms on the selected location,
-        //  send back the selected location details to the view model
-        //  and navigate back to the previous fragment to save the reminder and add the geofence
+        currentPoi?.let {
+            _viewModel.selectedPOI.value = it
+        }
+
+        val directions = SelectLocationFragmentDirections
+            .actionSelectLocationFragmentToSaveReminderFragment()
+        _viewModel.navigationCommand.value = NavigationCommand.To(directions)
     }
 
     //
@@ -196,11 +205,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     //
     private fun setPoiClick(googleMap: GoogleMap) {
         googleMap.setOnPoiClickListener { poi ->
-            currentMarker?.remove()
-            currentMarker = googleMap.addMarker(
+            googleMap.clear()
+
+            googleMap.addMarker(
                 MarkerOptions().position(poi.latLng).title(poi.name)
-            )
-            currentMarker?.showInfoWindow()
+            )?.showInfoWindow()
+
+            currentPoi = poi
         }
     }
 
