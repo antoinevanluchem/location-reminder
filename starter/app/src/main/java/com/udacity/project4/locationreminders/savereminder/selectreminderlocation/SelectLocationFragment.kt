@@ -104,23 +104,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun moveCameraToCurrentLocation() {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-            if (location != null) {
-                map.moveCamera(
-                    CameraUpdateFactory.newLatLngZoom(
-                        LatLng(
-                            location.latitude, location.longitude
-                        ), 15f
-                    )
-                )
-            }
-        }
-    }
-
     private fun configureMapForAcceptedLocationPermission() {
         map.isMyLocationEnabled = true
-        moveCameraToCurrentLocation()
+        moveCamera()
     }
 
     private fun enableMyLocation() {
@@ -139,8 +125,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             _viewModel.selectedPOI.value = it
         }
 
-        val directions = SelectLocationFragmentDirections
-            .actionSelectLocationFragmentToSaveReminderFragment()
+        val directions =
+            SelectLocationFragmentDirections.actionSelectLocationFragmentToSaveReminderFragment()
         _viewModel.navigationCommand.value = NavigationCommand.To(directions)
     }
 
@@ -182,7 +168,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     //
-    // Map Style
+    // Map Configuration
     //
     private fun setMapStyle(googleMap: GoogleMap) {
         try {
@@ -200,8 +186,30 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    private fun moveCamera() {
+        currentPoi?.let {
+            map.moveCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(
+                        it.latLng.latitude, it.latLng.longitude
+                    ), 15f
+                )
+            )
+        } ?: fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            if (location != null) {
+                map.moveCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        LatLng(
+                            location.latitude, location.longitude
+                        ), 15f
+                    )
+                )
+            }
+        }
+    }
+
     //
-    // SetPoiClick
+    // Poi
     //
     private fun setPoiClick(googleMap: GoogleMap) {
         googleMap.setOnPoiClickListener { poi ->
@@ -215,6 +223,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    private fun setLastPoi(googleMap: GoogleMap) {
+        currentPoi = _viewModel.selectedPOI.value
+
+        currentPoi?.let {
+            googleMap.clear()
+
+            googleMap.addMarker(
+                MarkerOptions().position(it.latLng).title(it.name)
+            )?.showInfoWindow()
+        }
+    }
+
     //
     // OnMapReadyCallback
     //
@@ -222,8 +242,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         Timber.i("OnMapReady called")
         map = googleMap
 
-        enableMyLocation()
+        setLastPoi(map)
         setMapStyle(map)
         setPoiClick(map)
+        enableMyLocation()
     }
 }
