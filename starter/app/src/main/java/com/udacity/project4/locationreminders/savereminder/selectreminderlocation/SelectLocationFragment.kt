@@ -2,6 +2,7 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.location.Location
 import android.os.Bundle
 import android.view.*
@@ -17,6 +18,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
@@ -44,7 +46,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         binding.viewModel = _viewModel
         binding.lifecycleOwner = this
 
-        setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -56,7 +57,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         setUpMenu()
 
-        // TODO: add style to the map
         // TODO: put a marker to location that the user selected
 
         // TODO: call this function after the user confirms on the selected location
@@ -112,7 +112,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun configureMapForAcceptedLocationPermission() {
-        map.setMyLocationEnabled(true)
+        map.isMyLocationEnabled = true
         moveCameraToCurrentLocation()
     }
 
@@ -124,12 +124,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    //
+    // Save Button
+    //
     private fun onLocationSelected() {
         // TODO: When the user confirms on the selected location,
         //  send back the selected location details to the view model
         //  and navigate back to the previous fragment to save the reminder and add the geofence
     }
 
+    //
+    // Options menu
+    //
     private fun setUpMenu() {
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -160,10 +166,31 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
+    //
+    // Map Style
+    //
+    private fun setMapStyle(googleMap: GoogleMap) {
+        try {
+            // Downloaded map from https://snazzymaps.com/style/72543/assassins-creed-iv
+            val success = googleMap.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(),
+                    R.raw.map_style
+                )
+            )
+            if (!success) {
+                Timber.e("Style parsing failed.")
+            }
+        } catch (e: Resources.NotFoundException) {
+            Timber.e("Can't find style. Error: ", e)
+        }
+    }
+
     override fun onMapReady(googleMap: GoogleMap) {
         Timber.i("OnMapReady called")
         map = googleMap
 
         enableMyLocation()
+        setMapStyle(map)
     }
 }
