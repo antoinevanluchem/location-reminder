@@ -123,6 +123,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun onLocationSelected() {
         currentPoi?.let {
             _viewModel.selectedPOI.value = it
+            _viewModel.reminderSelectedLocationStr.value = it.name
         }
 
         val directions =
