@@ -13,6 +13,9 @@ import org.koin.dsl.module
 
 class MyApp : Application() {
 
+	val remindersLocalRepository: RemindersLocalRepository
+		get() = ServiceLocator.provideRemindersLocalRepository(this)
+
 	override fun onCreate() {
 		super.onCreate()
 
