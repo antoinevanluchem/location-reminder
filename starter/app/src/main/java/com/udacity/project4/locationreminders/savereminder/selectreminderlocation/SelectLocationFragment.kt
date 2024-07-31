@@ -5,7 +5,12 @@ import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Location
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.core.view.MenuProvider
@@ -19,6 +24,8 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
@@ -36,6 +43,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var currentMarker: Marker? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -49,27 +57,22 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setDisplayHomeAsUpEnabled(true)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = childFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         setUpMenu()
 
-        // TODO: put a marker to location that the user selected
-
-        // TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
         return binding.root
     }
 
     //
     // Location permission
     //
-    private var requestLocationPermissionLauncher =
-        registerForActivityResult(
-        ActivityResultContracts.RequestPermission()) { isGranted ->
+    private var requestLocationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
         if (isGranted) {
             Timber.i(
                 "ACCESS_FINE_LOCATION granted"
@@ -80,8 +83,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 "ACCESS_FINE_LOCATION denied"
             )
             Snackbar.make(
-                binding.selectLocationLayout,
-                R.string.location_required_error, Snackbar.LENGTH_LONG
+                binding.selectLocationLayout, R.string.location_required_error, Snackbar.LENGTH_LONG
             ).show()
         }
     }
@@ -92,8 +94,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun isPermissionGranted(): Boolean {
-        return checkSelfPermission(requireContext(),
-            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        return checkSelfPermission(
+            requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun moveCameraToCurrentLocation() {
@@ -102,8 +105,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 map.moveCamera(
                     CameraUpdateFactory.newLatLngZoom(
                         LatLng(
-                            location.latitude,
-                            location.longitude
+                            location.latitude, location.longitude
                         ), 15f
                     )
                 )
@@ -148,18 +150,22 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         map.mapType = GoogleMap.MAP_TYPE_NORMAL
                         true
                     }
+
                     R.id.hybrid_map -> {
                         map.mapType = GoogleMap.MAP_TYPE_HYBRID
                         true
                     }
+
                     R.id.satellite_map -> {
                         map.mapType = GoogleMap.MAP_TYPE_SATELLITE
                         true
                     }
+
                     R.id.terrain_map -> {
                         map.mapType = GoogleMap.MAP_TYPE_TERRAIN
                         true
                     }
+
                     else -> false
                 }
             }
@@ -174,8 +180,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             // Downloaded map from https://snazzymaps.com/style/72543/assassins-creed-iv
             val success = googleMap.setMapStyle(
                 MapStyleOptions.loadRawResourceStyle(
-                    requireContext(),
-                    R.raw.map_style
+                    requireContext(), R.raw.map_style
                 )
             )
             if (!success) {
@@ -186,11 +191,28 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    //
+    // SetPoiClick
+    //
+    private fun setPoiClick(googleMap: GoogleMap) {
+        googleMap.setOnPoiClickListener { poi ->
+            currentMarker?.remove()
+            currentMarker = googleMap.addMarker(
+                MarkerOptions().position(poi.latLng).title(poi.name)
+            )
+            currentMarker?.showInfoWindow()
+        }
+    }
+
+    //
+    // OnMapReadyCallback
+    //
     override fun onMapReady(googleMap: GoogleMap) {
         Timber.i("OnMapReady called")
         map = googleMap
 
         enableMyLocation()
         setMapStyle(map)
+        setPoiClick(map)
     }
 }
