@@ -26,6 +26,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
 import com.google.android.material.snackbar.Snackbar
+import com.udacity.project4.BuildConfig
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -76,7 +77,14 @@ class SaveReminderFragment : BaseFragment() {
 
             val reminderData = ReminderDataItem(title, description, location, latitude, longitude)
 
-            _viewModel.validateAndSaveReminder(reminderData)
+
+            val isForegroundPermissionAccepted = checkForegroundPermission()
+            val isBackgroundPermissionAccepted = checkBackgroundPermission()
+
+            if (isForegroundPermissionAccepted && isBackgroundPermissionAccepted) {
+                checkDeviceLocationSettingsAndAddGeofence()
+                _viewModel.validateAndSaveReminder(reminderData)
+            }
         }
     }
 
@@ -93,18 +101,29 @@ class SaveReminderFragment : BaseFragment() {
         val isForegroundPermissionAccepted = checkForegroundPermission()
         val isBackgroundPermissionAccepted = checkBackgroundPermission()
 
-        if (isForegroundPermissionAccepted && isBackgroundPermissionAccepted) {
-            checkDeviceLocationSettingsAndAddGeofence()
-        } else {
-            if (!isForegroundPermissionAccepted) {
-                Timber.i("isForegroundPermissionAccepted == false")
-                requestForegroundPermission()
-            }
-            if (!isBackgroundPermissionAccepted) {
-                Timber.i("isBackgroundPermissionAccepted == false")
-                requestBackgroundPermission()
-            }
+        if (!isForegroundPermissionAccepted) {
+            Timber.i("isForegroundPermissionAccepted == false")
+            requestForegroundPermission()
         }
+        if (!isBackgroundPermissionAccepted) {
+            Timber.i("isBackgroundPermissionAccepted == false")
+            requestBackgroundPermission()
+        }
+    }
+
+    private fun showPermissionDeniedSnackbar() {
+        Snackbar.make(
+            binding.saveReminderLayout,
+            R.string.permission_denied_explanation, Snackbar.LENGTH_INDEFINITE
+        )
+            .setAction(R.string.settings) {
+                // Displays App settings screen.
+                startActivity(Intent().apply {
+                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            }.show()
     }
 
     //
@@ -122,6 +141,7 @@ class SaveReminderFragment : BaseFragment() {
             Timber.i(
                 "foregroundPermissionLauncher denied"
             )
+            showPermissionDeniedSnackbar()
         }
     }
 
@@ -149,6 +169,7 @@ class SaveReminderFragment : BaseFragment() {
             Timber.i(
                 "backgroundPermissionLauncher denied"
             )
+            showPermissionDeniedSnackbar()
         }
     }
 
@@ -176,6 +197,9 @@ class SaveReminderFragment : BaseFragment() {
         if (result.resultCode == RESULT_OK) {
             Timber.i("locationSettingsLauncher RESULT_OK")
             addGeofence()
+        } else {
+            // Endless loop until user decides to turn on location.
+            checkDeviceLocationSettingsAndAddGeofence()
         }
 
     }
