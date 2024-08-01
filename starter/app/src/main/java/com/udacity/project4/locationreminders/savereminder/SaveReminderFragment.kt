@@ -3,11 +3,13 @@ package com.udacity.project4.locationreminders.savereminder
 import android.Manifest
 import android.annotation.TargetApi
 import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +17,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.Priority
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
@@ -84,7 +91,7 @@ class SaveReminderFragment : BaseFragment() {
         val isBackgroundPermissionAccepted = checkBackgroundPermission()
 
         if (isForegroundPermissionAccepted && isBackgroundPermissionAccepted) {
-//            checkDeviceLocationSettingsAndStartGeofence()
+            checkDeviceLocationSettingsAndStartGeofence()
         } else {
             if (!isForegroundPermissionAccepted) {
                 requestForegroundPermission()
@@ -155,4 +162,45 @@ class SaveReminderFragment : BaseFragment() {
             true
         }
     }
+
+    //
+    // checkDeviceLocationSettingsAndStartGeofence
+    //
+    private fun checkDeviceLocationSettingsAndStartGeofence() {
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_LOW_POWER, 10000).build()
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        val settingsClient = LocationServices.getSettingsClient(requireActivity())
+        val locationSettingsResponseTask =
+            settingsClient.checkLocationSettings(builder.build())
+
+        locationSettingsResponseTask.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException){
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    // Show the dialog by calling startResolutionForResult(),
+                    // and check the result in onActivityResult().
+                    exception.startResolutionForResult(requireActivity(),
+                        REQUEST_TURN_DEVICE_LOCATION_ON)
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    Timber.d("Error geting location settings resolution: " + sendEx.message)
+                }
+            } else {
+                Snackbar.make(
+                    binding.saveReminderLayout,
+                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+                ).setAction(android.R.string.ok) {
+                    checkDeviceLocationSettingsAndStartGeofence()
+                }.show()
+            }
+        }
+
+        locationSettingsResponseTask.addOnCompleteListener {
+            if ( it.isSuccessful ) {
+                Timber.i("locationSettingsResponseTask successfull!")
+            }
+        }
+    }
 }
+
+private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
