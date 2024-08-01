@@ -49,7 +49,7 @@ class SaveReminderFragment : BaseFragment() {
 
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(requireActivity(), GeofenceBroadcastReceiver::class.java)
-        PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE)
     }
     private val geofencingClient: GeofencingClient by lazy {LocationServices.getGeofencingClient(requireContext())}
     private var reminderData: ReminderDataItem? = null
@@ -86,10 +86,13 @@ class SaveReminderFragment : BaseFragment() {
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
             val location = _viewModel.reminderSelectedLocationStr.value
-            val latitude = _viewModel.latitude.value
-            val longitude = _viewModel.longitude.value
+            val latitude = _viewModel.selectedPOI.value?.latLng?.latitude
+            val longitude = _viewModel.selectedPOI.value?.latLng?.latitude
 
             reminderData = ReminderDataItem(title, description, location, latitude, longitude)
+
+            Timber.i("Assigned reminderData")
+            Timber.i(reminderData.toString())
 
             val isForegroundPermissionAccepted = checkForegroundPermission()
             val isBackgroundPermissionAccepted = checkBackgroundPermission()
@@ -259,6 +262,10 @@ class SaveReminderFragment : BaseFragment() {
             Timber.i("reminderData is null, not adding Geofence")
             return
         }
+
+        Timber.i("addGeofence")
+        Timber.i(reminderData!!.id)
+        Timber.i(reminderData!!.latitude!!.toString())
 
         val geofence = Geofence.Builder()
             .setRequestId(reminderData!!.id)
