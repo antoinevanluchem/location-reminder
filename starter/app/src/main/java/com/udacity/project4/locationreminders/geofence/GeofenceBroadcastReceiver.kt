@@ -55,6 +55,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             .build()
 
         WorkManager.getInstance(context).enqueue(geofenceWorkRequest)
+        Timber.v("Enqueued geofenceWorkRequest")
     }
 
     companion object {
