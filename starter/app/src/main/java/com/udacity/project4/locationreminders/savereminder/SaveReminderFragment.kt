@@ -115,16 +115,17 @@ class SaveReminderFragment : BaseFragment() {
             Timber.i("isForegroundPermissionAccepted == false")
             requestForegroundPermission()
         }
-        if (!isBackgroundPermissionAccepted) {
+        // Use else if here such that we do not request multiple permissions at once
+        else if (!isBackgroundPermissionAccepted) {
             Timber.i("isBackgroundPermissionAccepted == false")
             requestBackgroundPermission()
         }
     }
 
-    private fun showPermissionDeniedSnackbar() {
+    private fun showPermissionDeniedSnackbar(text: Int) {
         Snackbar.make(
             binding.saveReminderLayout,
-            R.string.permission_denied_explanation, Snackbar.LENGTH_INDEFINITE
+            text, Snackbar.LENGTH_LONG
         )
             .setAction(R.string.settings) {
                 // Displays App settings screen.
@@ -151,7 +152,7 @@ class SaveReminderFragment : BaseFragment() {
             Timber.i(
                 "foregroundPermissionLauncher denied"
             )
-            showPermissionDeniedSnackbar()
+            showPermissionDeniedSnackbar(R.string.location_permission_denied_explanation)
         }
     }
 
@@ -179,7 +180,7 @@ class SaveReminderFragment : BaseFragment() {
             Timber.i(
                 "backgroundPermissionLauncher denied"
             )
-            showPermissionDeniedSnackbar()
+            showPermissionDeniedSnackbar(R.string.background_location_denied_explanation)
         }
     }
 
