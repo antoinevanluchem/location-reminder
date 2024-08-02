@@ -54,11 +54,6 @@ class SaveReminderFragment : BaseFragment() {
     private val geofencingClient: GeofencingClient by lazy {LocationServices.getGeofencingClient(requireContext())}
     private var reminderData: ReminderDataItem? = null
 
-    companion object {
-        internal const val ACTION_GEOFENCE_EVENT =
-            "HuntMainActivity.treasureHunt.action.ACTION_GEOFENCE_EVENT"
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {

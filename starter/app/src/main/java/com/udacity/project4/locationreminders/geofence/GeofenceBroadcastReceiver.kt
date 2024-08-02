@@ -3,6 +3,12 @@ package com.udacity.project4.locationreminders.geofence
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingEvent
+import timber.log.Timber
 
 /**
  * Triggered by the Geofence.  Since we can have many Geofences at once, we pull the request
@@ -15,6 +21,37 @@ import android.content.Intent
  */
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        // TODO: implement the onReceive method to receive the geofencing events at the background
+        val geofenceEvent = GeofencingEvent.fromIntent(intent)
+
+        if (geofenceEvent == null) {
+            Timber.e("Could not create geofenceEvent from intent.")
+            return
+        }
+
+        if (geofenceEvent.hasError()) {
+            Timber.e(geofenceEvent.errorCode.toString())
+            return
+        }
+
+        if (geofenceEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
+            val workData = Data.Builder().apply {
+                geofenceEvent.triggeringGeofences?.map { it.requestId }?.let {
+                    putStringArray(
+                        GEOFENCE_IDS_KEY,
+                        it.toTypedArray()
+                    )
+                }
+            }.build()
+
+            val geofenceWorkRequest = OneTimeWorkRequestBuilder<GeofenceTransitionsWorker>()
+                .setInputData(workData)
+                .build()
+
+            WorkManager.getInstance(context).enqueue(geofenceWorkRequest)
+        }
+    }
+
+    companion object {
+        private const val GEOFENCE_IDS_KEY = "GEOFENCE_IDS_KEY"
     }
 }
