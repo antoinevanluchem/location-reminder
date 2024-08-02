@@ -24,7 +24,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         val geofenceEvent = GeofencingEvent.fromIntent(intent)
 
         if (geofenceEvent == null) {
-            Timber.e("Could not create geofenceEvent from intent.")
+            Timber.v("Could not create geofenceEvent from intent.")
             return
         }
 
@@ -33,25 +33,32 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             return
         }
 
-        if (geofenceEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-            val workData = Data.Builder().apply {
-                geofenceEvent.triggeringGeofences?.map { it.requestId }?.let {
-                    putStringArray(
-                        GEOFENCE_IDS_KEY,
-                        it.toTypedArray()
-                    )
-                }
-            }.build()
-
-            val geofenceWorkRequest = OneTimeWorkRequestBuilder<GeofenceTransitionsWorker>()
-                .setInputData(workData)
-                .build()
-
-            WorkManager.getInstance(context).enqueue(geofenceWorkRequest)
+        if (geofenceEvent.geofenceTransition != Geofence.GEOFENCE_TRANSITION_ENTER) {
+            Timber.v("We are not interested in this geofenceTransition, since it is not GEOFENCE_TRANSITION_ENTER")
+            return
         }
+
+        if (geofenceEvent.triggeringGeofences.isNullOrEmpty()) {
+            Timber.e("triggeringGeofences is Null or Empty!")
+            return
+        }
+
+        val workData = Data.Builder().apply {
+            putStringArray(
+                GEOFENCE_IDS_KEY,
+                geofenceEvent.triggeringGeofences!!.map { it.requestId }.toTypedArray()
+            )
+        }.build()
+
+        val geofenceWorkRequest = OneTimeWorkRequestBuilder<GeofenceTransitionsWorker>()
+            .setInputData(workData)
+            .build()
+
+        WorkManager.getInstance(context).enqueue(geofenceWorkRequest)
     }
 
     companion object {
         private const val GEOFENCE_IDS_KEY = "GEOFENCE_IDS_KEY"
     }
+
 }
