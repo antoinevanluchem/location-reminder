@@ -24,7 +24,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         val geofenceEvent = GeofencingEvent.fromIntent(intent)
 
         if (geofenceEvent == null) {
-            Timber.v("Could not create geofenceEvent from intent.")
+            Timber.i("Could not create geofenceEvent from intent.")
             return
         }
 
@@ -34,7 +34,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         }
 
         if (geofenceEvent.geofenceTransition != Geofence.GEOFENCE_TRANSITION_ENTER) {
-            Timber.v("We are not interested in this geofenceTransition, since it is not GEOFENCE_TRANSITION_ENTER")
+            Timber.i("We are not interested in this geofenceTransition, since it is not GEOFENCE_TRANSITION_ENTER")
             return
         }
 
@@ -55,7 +55,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             .build()
 
         WorkManager.getInstance(context).enqueue(geofenceWorkRequest)
-        Timber.v("Enqueued geofenceWorkRequest")
+        Timber.i("Enqueued geofenceWorkRequest")
     }
 
     companion object {

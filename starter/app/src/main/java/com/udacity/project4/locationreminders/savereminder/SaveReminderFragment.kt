@@ -86,9 +86,6 @@ class SaveReminderFragment : BaseFragment() {
 
             reminderData = ReminderDataItem(title, description, location, latitude, longitude)
 
-            Timber.i("Assigned reminderData")
-            Timber.i(reminderData.toString())
-
             val isForegroundPermissionAccepted = checkForegroundPermission()
             val isBackgroundPermissionAccepted = checkBackgroundPermission()
 
@@ -259,10 +256,6 @@ class SaveReminderFragment : BaseFragment() {
             return
         }
 
-        Timber.i("addGeofence")
-        Timber.i(reminderData!!.id)
-        Timber.i(reminderData!!.latitude!!.toString())
-
         val geofence = Geofence.Builder()
             .setRequestId(reminderData!!.id)
             .setCircularRegion(reminderData!!.latitude!!,
@@ -280,13 +273,12 @@ class SaveReminderFragment : BaseFragment() {
 
         geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
             addOnSuccessListener {
-                Timber.i("geofence.requestId", geofence.requestId)
+                Timber.i("Successfully added geofence with id ${geofence.requestId}")
                 _viewModel.validateAndSaveReminder(reminderData!!)
 
             }
             addOnFailureListener {
                 _viewModel.showToast.value = requireContext().getString(R.string.error_adding_geofence)
-
             }
         }
     }
