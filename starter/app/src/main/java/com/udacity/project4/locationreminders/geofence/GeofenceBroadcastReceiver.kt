@@ -21,6 +21,7 @@ import timber.log.Timber
  */
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        Timber.i("OnReceive called")
         val geofenceEvent = GeofencingEvent.fromIntent(intent)
 
         if (geofenceEvent == null) {

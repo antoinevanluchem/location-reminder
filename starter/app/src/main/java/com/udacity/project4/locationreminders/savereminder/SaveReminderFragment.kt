@@ -49,7 +49,7 @@ class SaveReminderFragment : BaseFragment() {
 
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(requireActivity(), GeofenceBroadcastReceiver::class.java)
-        PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_MUTABLE)
     }
     private val geofencingClient: GeofencingClient by lazy {LocationServices.getGeofencingClient(requireContext())}
     private var reminderData: ReminderDataItem? = null
