@@ -24,8 +24,8 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PointOfInterest
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
@@ -35,6 +35,7 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import timber.log.Timber
+import java.util.Locale
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
@@ -44,7 +45,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private var currentPoi: PointOfInterest? = null
+    private var currentMarker: Marker? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -121,9 +122,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     // Save Button
     //
     private fun onLocationSelected() {
-        currentPoi?.let {
-            _viewModel.selectedPOI.value = it
-            _viewModel.reminderSelectedLocationStr.value = it.name
+        currentMarker?.let {
+            _viewModel.longitude.value = it.position.longitude
+            _viewModel.latitude.value = it.position.latitude
+            _viewModel.reminderSelectedLocationStr.value = it.title
         }
 
         val directions =
@@ -188,11 +190,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun moveCamera() {
-        currentPoi?.let {
+        currentMarker?.let {
             map.moveCamera(
                 CameraUpdateFactory.newLatLngZoom(
                     LatLng(
-                        it.latLng.latitude, it.latLng.longitude
+                        it.position.latitude, it.position.longitude
                     ), 15f
                 )
             )
@@ -210,31 +212,48 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     //
-    // Poi
+    // Selecting location
     //
+    private fun setLastMarker(googleMap: GoogleMap) {
+        val longitude = _viewModel.longitude.value
+        val latitude = _viewModel.latitude.value
+        val title = _viewModel.reminderSelectedLocationStr.value
+
+        if (longitude != null && latitude != null && title != null) {
+            googleMap.clear()
+
+            currentMarker = googleMap.addMarker(
+                MarkerOptions().position(LatLng(latitude, longitude)).title(title)
+            )
+            currentMarker?.showInfoWindow()
+        }
+    }
+
     private fun setPoiClick(googleMap: GoogleMap) {
         googleMap.setOnPoiClickListener { poi ->
             googleMap.clear()
 
-            googleMap.addMarker(
+            currentMarker = googleMap.addMarker(
                 MarkerOptions().position(poi.latLng).title(poi.name)
-            )?.showInfoWindow()
-
-            currentPoi = poi
+            )
+            currentMarker?.showInfoWindow()
         }
     }
 
-    private fun setLastPoi(googleMap: GoogleMap) {
-        currentPoi = _viewModel.selectedPOI.value
+    private fun setMapLongClick(googleMap: GoogleMap) {
+        googleMap.setOnMapLongClickListener { latLng ->
+            val snippet = String.format(
+                Locale.getDefault(), "Lat: %1$.5f, Long: %2$.5f", latLng.latitude, latLng.longitude
+            )
+            currentMarker = googleMap.addMarker(
+                MarkerOptions().position(latLng).title(getString(R.string.dropped_pin))
+                    .snippet(snippet)
+            )
 
-        currentPoi?.let {
-            googleMap.clear()
-
-            googleMap.addMarker(
-                MarkerOptions().position(it.latLng).title(it.name)
-            )?.showInfoWindow()
+            currentMarker?.showInfoWindow()
         }
     }
+
 
     //
     // OnMapReadyCallback
@@ -243,9 +262,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         Timber.i("OnMapReady called")
         map = googleMap
 
-        setLastPoi(map)
+        setLastMarker(map)
         setMapStyle(map)
         setPoiClick(map)
+        setMapLongClick(map)
         enableMyLocation()
     }
 }
