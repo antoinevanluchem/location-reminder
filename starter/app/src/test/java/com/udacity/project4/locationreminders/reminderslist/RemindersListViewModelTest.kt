@@ -9,6 +9,7 @@ import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -55,10 +56,38 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun invalidateShowNoDataShowNoDataIsTrue() = coroutineRule.runTest{
+    fun loadReminders_WhenEmptyRemindersList_ThenSizeIsZeroAndShowNoDataIsTrue() {
         remindersList.loadReminders()
 
         assertThat(remindersList.remindersList.getOrAwaitValue().size, `is` (0))
         assertThat(remindersList.showNoData.getOrAwaitValue(), `is` (true))
     }
+
+    @Test
+    fun loadReminders_WhenRemindersAddedToRemindersList_ThenHaveCorrectSizeAndShowNoDateIsFalse() = runTest {
+        data.saveReminder(golden_gate_bridge_reminder)
+        data.saveReminder(arctic_reminder)
+        data.saveReminder(mount_etna_reminder)
+
+        remindersList.loadReminders()
+
+        assertThat(remindersList.remindersList.getOrAwaitValue().size, `is` (3))
+        assertThat(remindersList.showNoData.getOrAwaitValue(), `is` (false))
+    }
+
+    @Test
+    fun loadReminders_WhenGetRemindersHasError_ThenRemindersListIsEmptyAndSnackbarShowsMessage() = runTest {
+        data.setReturnError(true)
+
+        remindersList.loadReminders()
+
+//        assertThat(remindersList.remindersList.getOrAwaitValue(), `is` (emptyList()))
+//        assertThat(remindersList.showNoData.getOrAwaitValue(), `is` (true))
+        assertThat(remindersList.showSnackBar.getOrAwaitValue(), `is` ("shouldReturnError was set to true in the FakeDataSource"))
+
+    }
+
+
+
+
 }
