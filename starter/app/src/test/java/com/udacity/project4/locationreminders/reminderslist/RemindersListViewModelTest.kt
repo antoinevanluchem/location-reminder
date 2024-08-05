@@ -9,14 +9,14 @@ import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.Is.`is`
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.GlobalContext.stopKoin
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.Is.`is`
-import org.junit.Test
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
@@ -27,9 +27,18 @@ class RemindersListViewModelTest {
     // Use a fake data source to be injected into the viewmodel
     private lateinit var data: FakeDataSource
 
-    private val golden_gate_bridge_reminder = ReminderDTO("Practice diving", "Improve salto", "Golden Gate Bridge", 37.8199, 122.4786,"1")
-    private val arctic_reminder = ReminderDTO("Pet polar bear", "Take snow boots with you", "Arctic", 76.2506, 100.1140, "2")
-    private val mount_etna_reminder = ReminderDTO("Go for a sauna", "Don't forget towel", "Mount Etna", 37.7510, 14.9934, "3")
+    private val golden_gate_bridge_reminder = ReminderDTO(
+        "Practice diving",
+        "Improve salto",
+        "Golden Gate Bridge",
+        37.8199,
+        122.4786,
+        "1"
+    )
+    private val arctic_reminder =
+        ReminderDTO("Pet polar bear", "Take snow boots with you", "Arctic", 76.2506, 100.1140, "2")
+    private val mount_etna_reminder =
+        ReminderDTO("Go for a sauna", "Don't forget towel", "Mount Etna", 37.7510, 14.9934, "3")
 
     //For unit testing, set the primary coroutine dispatcher.
     @ExperimentalCoroutinesApi
@@ -41,23 +50,24 @@ class RemindersListViewModelTest {
     var instantExecutorRule = InstantTaskExecutorRule()
 
     @Before
-    fun model(){
+    fun model() {
         stopKoin()
         data = FakeDataSource()
         remindersList = RemindersListViewModel(ApplicationProvider.getApplicationContext(), data)
     }
 
     @After
-    fun clearData() = runTest{
+    fun clearData() = runTest {
         data.deleteAllReminders()
     }
 
     @Test
     fun loadReminders_WhenEmptyRemindersList_ThenSizeIsZeroAndShowNoDataIsTrue() {
         remindersList.loadReminders()
+        coroutineRule.testScheduler.runCurrent()
 
-        assertThat(remindersList.remindersList.getOrAwaitValue().size, `is` (0))
-        assertThat(remindersList.showNoData.getOrAwaitValue(), `is` (true))
+        assertThat(remindersList.remindersList.getOrAwaitValue().size, `is`(0))
+        assertThat(remindersList.showNoData.getOrAwaitValue(), `is`(true))
     }
 
     @Test
@@ -67,18 +77,24 @@ class RemindersListViewModelTest {
         data.saveReminder(mount_etna_reminder)
 
         remindersList.loadReminders()
+        coroutineRule.testScheduler.runCurrent()
 
-        assertThat(remindersList.remindersList.getOrAwaitValue().size, `is` (3))
-        assertThat(remindersList.showNoData.getOrAwaitValue(), `is` (false))
+
+        assertThat(remindersList.remindersList.getOrAwaitValue().size, `is`(3))
+        assertThat(remindersList.showNoData.getOrAwaitValue(), `is`(false))
     }
 
     @Test
-    fun loadReminders_WhenGetRemindersHasError_ThenShowSnackbarMessage() = runTest {
+    fun loadReminders_WhenGetRemindersHasError_ThenShowSnackbarMessage() {
         data.setReturnError(true)
 
         remindersList.loadReminders()
+        coroutineRule.testScheduler.runCurrent()
 
-        assertThat(remindersList.showSnackBar.getOrAwaitValue(), `is` ("shouldReturnError was set to true in the FakeDataSource"))
+        assertThat(
+            remindersList.showSnackBar.getOrAwaitValue(),
+            `is`("shouldReturnError was set to true in the FakeDataSource")
+        )
     }
 
     @Test
