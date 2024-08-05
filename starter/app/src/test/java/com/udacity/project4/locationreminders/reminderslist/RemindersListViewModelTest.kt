@@ -55,7 +55,7 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun invalidateShowNoDataShowNoDataIsTrue()= coroutineRule.testScope.runTest{
+    fun invalidateShowNoDataShowNoDataIsTrue() = coroutineRule.runTest{
         remindersList.loadReminders()
 
         assertThat(remindersList.remindersList.getOrAwaitValue().size, `is` (0))
