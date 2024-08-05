@@ -1,18 +1,24 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.runner.RunWith
 import org.koin.core.context.GlobalContext.stopKoin
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.Is.`is`
+import org.junit.Test
+import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
@@ -44,7 +50,15 @@ class RemindersListViewModelTest {
     }
 
     @After
-    fun clearData() = runBlockingTest{
+    fun clearData() = runTest{
         data.deleteAllReminders()
+    }
+
+    @Test
+    fun invalidateShowNoDataShowNoDataIsTrue()= coroutineRule.testScope.runTest{
+        remindersList.loadReminders()
+
+        assertThat(remindersList.remindersList.getOrAwaitValue().size, `is` (0))
+        assertThat(remindersList.showNoData.getOrAwaitValue(), `is` (true))
     }
 }
