@@ -10,8 +10,7 @@ import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.sendNotification
 import org.koin.java.KoinJavaComponent.inject
-import timber.log.Timber
-
+import  com.udacity.project4.locationreminders.data.dto.Result.Success as Success
 class GeofenceTransitionsWorker(
     appContext: Context,
     workerParams: WorkerParameters
@@ -24,7 +23,7 @@ class GeofenceTransitionsWorker(
             val remindersLocalRepository: ReminderDataSource by inject(ReminderDataSource::class.java)
 
             val result = remindersLocalRepository.getReminder(requestId)
-            if (result is com.udacity.project4.locationreminders.data.dto.Result.Success<ReminderDTO>) {
+            if (result is Success<ReminderDTO>) {
                 val reminderDTO = result.data
                 sendNotification(applicationContext, ReminderDataItem(
                     reminderDTO.title,

@@ -4,21 +4,22 @@ import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.udacity.project4.R
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
-import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import com.udacity.project4.locationreminders.data.dto.Result.Success
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
-import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.Is.`is`
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.GlobalContext.stopKoin
-import com.udacity.project4.R
 
 
 @ExperimentalCoroutinesApi
@@ -29,19 +30,6 @@ class SaveReminderViewModelTest {
 
     // Use a fake data source to be injected into the viewmodel
     private lateinit var data: FakeDataSource
-
-    private val golden_gate_bridge_reminder = ReminderDTO(
-        "Practice diving",
-        "Improve salto",
-        "Golden Gate Bridge",
-        37.8199,
-        122.4786,
-        "1"
-    )
-    private val arctic_reminder =
-        ReminderDTO("Pet polar bear", "Take snow boots with you", "Arctic", 76.2506, 100.1140, "2")
-    private val mount_etna_reminder =
-        ReminderDTO("Go for a sauna", "Don't forget towel", "Mount Etna", 37.7510, 14.9934, "3")
 
     //For unit testing, set the primary coroutine dispatcher.
     @ExperimentalCoroutinesApi
@@ -69,43 +57,98 @@ class SaveReminderViewModelTest {
 
     @Test
     fun validateAndSaveReminder_WhenReminderTitleIsEmpty_ThenDoNotSaveReminder() {
-        val emptyTitleReminder = ReminderDataItem("", "Take snow boots with you", "Arctic", 76.2506, 100.1140, "2")
+        val emptyTitleReminder =
+            ReminderDataItem("", "Take snow boots with you", "Arctic", 76.2506, 100.1140, "2")
 
         saveReminderViewModel.validateAndSaveReminder(emptyTitleReminder)
         coroutineRule.testScheduler.runCurrent()
 
-        assertEquals(saveReminderViewModel.showSnackBarInt.getOrAwaitValue(), R.string.err_enter_title)
+        assertThat(
+            saveReminderViewModel.showSnackBarInt.getOrAwaitValue(),
+            `is`(R.string.err_enter_title)
+        )
     }
 
     @Test
     fun validateAndSaveReminder_WhenReminderTitleIsNull_ThenDoNotSaveReminder() {
-        val emptyTitleReminder = ReminderDataItem(null, "Take snow boots with you", "Arctic", 76.2506, 100.1140, "2")
+        val nullTitleReminder =
+            ReminderDataItem(null, "Take snow boots with you", "Arctic", 76.2506, 100.1140, "2")
 
-        saveReminderViewModel.validateAndSaveReminder(emptyTitleReminder)
+        saveReminderViewModel.validateAndSaveReminder(nullTitleReminder)
         coroutineRule.testScheduler.runCurrent()
 
-        assertEquals(saveReminderViewModel.showSnackBarInt.getOrAwaitValue(), R.string.err_enter_title)
+        assertThat(
+            saveReminderViewModel.showSnackBarInt.getOrAwaitValue(),
+            `is`(R.string.err_enter_title)
+        )
     }
 
     @Test
     fun validateAndSaveReminder_WhenReminderLocationIsEmpty_ThenDoNotSaveReminder() {
-        val emptyTitleReminder = ReminderDataItem("Pet polar bear", "Take snow boots with you", "", 76.2506, 100.1140, "2")
+        val emptyLocationReminder = ReminderDataItem(
+            "Pet polar bear",
+            "Take snow boots with you",
+            "",
+            76.2506,
+            100.1140,
+            "2"
+        )
 
-        saveReminderViewModel.validateAndSaveReminder(emptyTitleReminder)
+        saveReminderViewModel.validateAndSaveReminder(emptyLocationReminder)
         coroutineRule.testScheduler.runCurrent()
 
-        assertEquals(saveReminderViewModel.showSnackBarInt.getOrAwaitValue(), R.string.err_select_location)
+        assertThat(
+            saveReminderViewModel.showSnackBarInt.getOrAwaitValue(),
+            `is`(R.string.err_select_location)
+        )
     }
 
     @Test
     fun validateAndSaveReminder_WhenReminderLocationIsNull_ThenDoNotSaveReminder() {
-        val emptyTitleReminder = ReminderDataItem("Pet polar bear", "Take snow boots with you", null, 76.2506, 100.1140, "2")
+        val nullLocationReminder = ReminderDataItem(
+            "Pet polar bear",
+            "Take snow boots with you",
+            null,
+            76.2506,
+            100.1140,
+            "2"
+        )
 
-        saveReminderViewModel.validateAndSaveReminder(emptyTitleReminder)
+        saveReminderViewModel.validateAndSaveReminder(nullLocationReminder)
         coroutineRule.testScheduler.runCurrent()
 
-        assertEquals(saveReminderViewModel.showSnackBarInt.getOrAwaitValue(), R.string.err_select_location)
+        assertThat(
+            saveReminderViewModel.showSnackBarInt.getOrAwaitValue(),
+            `is`(R.string.err_select_location)
+        )
     }
 
+    @Test
+    fun validateAndSaveReminder_WhenReminderIsValid_ThenSaveReminder() = runTest {
+        val reminderDataItem = ReminderDataItem(
+            "Pet polar bear",
+            "Take snow boots with you",
+            "Arctic",
+            76.2506,
+            100.1140,
+            "2"
+        )
+
+        saveReminderViewModel.validateAndSaveReminder(reminderDataItem)
+        coroutineRule.testScheduler.runCurrent()
+
+        assertThat(
+            saveReminderViewModel.showToast.getOrAwaitValue(),
+            `is`(context.getString(R.string.reminder_saved))
+        )
+
+        val reminderDTO = (data.getReminders() as Success).data[0]
+        assertThat(reminderDTO.title, `is`(reminderDataItem.title))
+        assertThat(reminderDTO.description, `is`(reminderDataItem.description))
+        assertThat(reminderDTO.location, `is`(reminderDataItem.location))
+        assertThat(reminderDTO.latitude, `is`(reminderDataItem.latitude))
+        assertThat(reminderDTO.longitude, `is`(reminderDataItem.longitude))
+        assertThat(reminderDTO.id, `is`(reminderDataItem.id))
+    }
 
 }
