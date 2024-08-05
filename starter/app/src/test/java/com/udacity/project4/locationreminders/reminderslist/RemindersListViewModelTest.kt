@@ -1,6 +1,5 @@
 package com.udacity.project4.locationreminders.reminderslist
 
-import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -9,9 +8,6 @@ import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.pauseDispatcher
-import kotlinx.coroutines.test.resumeDispatcher
-import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -21,7 +17,6 @@ import org.koin.core.context.GlobalContext.stopKoin
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is.`is`
 import org.junit.Test
-import kotlin.coroutines.ContinuationInterceptor
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
@@ -86,5 +81,17 @@ class RemindersListViewModelTest {
         assertThat(remindersList.showSnackBar.getOrAwaitValue(), `is` ("shouldReturnError was set to true in the FakeDataSource"))
     }
 
+    @Test
+    fun loadReminders_WhenGettingReminders_ThenShowLoadingIsTrue() {
+        coroutineRule.testScheduler.advanceUntilIdle()
 
+        remindersList.loadReminders()
+
+        assertThat(remindersList.showLoading.getOrAwaitValue(), `is`(true))
+
+        coroutineRule.testScheduler.runCurrent()
+
+        assertThat(remindersList.showLoading.getOrAwaitValue(), `is`(false))
+        assertThat(remindersList.showNoData.getOrAwaitValue(), `is`(true))
+    }
 }
