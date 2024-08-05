@@ -7,14 +7,19 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
-import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
+import com.udacity.project4.locationreminders.getOrAwaitValue
+import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.GlobalContext.stopKoin
+import com.udacity.project4.R
+
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -47,17 +52,59 @@ class SaveReminderViewModelTest {
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
+    // Context
+    private val context: Application = ApplicationProvider.getApplicationContext<Application>()
+
     @Before
     fun setUpViewModel() {
         stopKoin()
         data = FakeDataSource()
-        val context = ApplicationProvider.getApplicationContext<Application>()
         saveReminderViewModel = SaveReminderViewModel(context, data)
     }
 
     @After
     fun clearData() = runTest {
         data.deleteAllReminders()
+    }
+
+    @Test
+    fun validateAndSaveReminder_WhenReminderTitleIsEmpty_ThenDoNotSaveReminder() {
+        val emptyTitleReminder = ReminderDataItem("", "Take snow boots with you", "Arctic", 76.2506, 100.1140, "2")
+
+        saveReminderViewModel.validateAndSaveReminder(emptyTitleReminder)
+        coroutineRule.testScheduler.runCurrent()
+
+        assertEquals(saveReminderViewModel.showSnackBarInt.getOrAwaitValue(), R.string.err_enter_title)
+    }
+
+    @Test
+    fun validateAndSaveReminder_WhenReminderTitleIsNull_ThenDoNotSaveReminder() {
+        val emptyTitleReminder = ReminderDataItem(null, "Take snow boots with you", "Arctic", 76.2506, 100.1140, "2")
+
+        saveReminderViewModel.validateAndSaveReminder(emptyTitleReminder)
+        coroutineRule.testScheduler.runCurrent()
+
+        assertEquals(saveReminderViewModel.showSnackBarInt.getOrAwaitValue(), R.string.err_enter_title)
+    }
+
+    @Test
+    fun validateAndSaveReminder_WhenReminderLocationIsEmpty_ThenDoNotSaveReminder() {
+        val emptyTitleReminder = ReminderDataItem("Pet polar bear", "Take snow boots with you", "", 76.2506, 100.1140, "2")
+
+        saveReminderViewModel.validateAndSaveReminder(emptyTitleReminder)
+        coroutineRule.testScheduler.runCurrent()
+
+        assertEquals(saveReminderViewModel.showSnackBarInt.getOrAwaitValue(), R.string.err_select_location)
+    }
+
+    @Test
+    fun validateAndSaveReminder_WhenReminderLocationIsNull_ThenDoNotSaveReminder() {
+        val emptyTitleReminder = ReminderDataItem("Pet polar bear", "Take snow boots with you", null, 76.2506, 100.1140, "2")
+
+        saveReminderViewModel.validateAndSaveReminder(emptyTitleReminder)
+        coroutineRule.testScheduler.runCurrent()
+
+        assertEquals(saveReminderViewModel.showSnackBarInt.getOrAwaitValue(), R.string.err_select_location)
     }
 
 
