@@ -50,7 +50,7 @@ class RemindersListViewModelTest {
     var instantExecutorRule = InstantTaskExecutorRule()
 
     @Before
-    fun model() {
+    fun setUpViewModel() {
         stopKoin()
         data = FakeDataSource()
         remindersList = RemindersListViewModel(ApplicationProvider.getApplicationContext(), data)
