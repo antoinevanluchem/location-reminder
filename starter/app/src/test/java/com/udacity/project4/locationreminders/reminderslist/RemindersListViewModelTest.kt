@@ -9,6 +9,8 @@ import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.pauseDispatcher
+import kotlinx.coroutines.test.resumeDispatcher
 import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -19,7 +21,7 @@ import org.koin.core.context.GlobalContext.stopKoin
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is.`is`
 import org.junit.Test
-import org.robolectric.annotation.Config
+import kotlin.coroutines.ContinuationInterceptor
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
@@ -76,18 +78,13 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun loadReminders_WhenGetRemindersHasError_ThenRemindersListIsEmptyAndSnackbarShowsMessage() = runTest {
+    fun loadReminders_WhenGetRemindersHasError_ThenShowSnackbarMessage() = runTest {
         data.setReturnError(true)
 
         remindersList.loadReminders()
 
-//        assertThat(remindersList.remindersList.getOrAwaitValue(), `is` (emptyList()))
-//        assertThat(remindersList.showNoData.getOrAwaitValue(), `is` (true))
         assertThat(remindersList.showSnackBar.getOrAwaitValue(), `is` ("shouldReturnError was set to true in the FakeDataSource"))
-
     }
-
-
 
 
 }
