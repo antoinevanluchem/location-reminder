@@ -6,6 +6,8 @@ import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
+import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
@@ -120,6 +122,20 @@ class RemindersActivityTest :
         onView(withId(R.id.saveReminder)).perform(click())
 
         onView(withText(appContext.getString(R.string.err_enter_title))).check(matches(isDisplayed()))
+        scenario.close()
+    }
+
+    @Test
+    fun showSelectLocationSnackbar() = runBlocking {
+        val scenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(scenario)
+
+        // Navigate to Save Reminder Screen
+        onView(withId(R.id.addReminderFAB)).perform(click())
+        onView(withId(R.id.reminderTitle)).perform(typeText("Practice diving"), closeSoftKeyboard())
+        onView(withId(R.id.saveReminder)).perform(click())
+
+        onView(withText(appContext.getString(R.string.err_select_location))).check(matches(isDisplayed()))
         scenario.close()
     }
 }
