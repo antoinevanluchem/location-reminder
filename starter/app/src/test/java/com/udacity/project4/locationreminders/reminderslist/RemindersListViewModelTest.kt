@@ -27,7 +27,7 @@ class RemindersListViewModelTest {
     // Use a fake data source to be injected into the viewmodel
     private lateinit var data: FakeDataSource
 
-    private val golden_gate_bridge_reminder = ReminderDTO(
+    private val goldenGateBridgeReminder = ReminderDTO(
         "Practice diving",
         "Improve salto",
         "Golden Gate Bridge",
@@ -35,9 +35,9 @@ class RemindersListViewModelTest {
         122.4786,
         "1"
     )
-    private val arctic_reminder =
+    private val arcticReminder =
         ReminderDTO("Pet polar bear", "Take snow boots with you", "Arctic", 76.2506, 100.1140, "2")
-    private val mount_etna_reminder =
+    private val mountEtnaReminder =
         ReminderDTO("Go for a sauna", "Don't forget towel", "Mount Etna", 37.7510, 14.9934, "3")
 
     //For unit testing, set the primary coroutine dispatcher.
@@ -72,9 +72,9 @@ class RemindersListViewModelTest {
 
     @Test
     fun loadReminders_WhenRemindersAddedToRemindersList_ThenHaveCorrectSizeAndShowNoDateIsFalse() = runTest {
-        data.saveReminder(golden_gate_bridge_reminder)
-        data.saveReminder(arctic_reminder)
-        data.saveReminder(mount_etna_reminder)
+        data.saveReminder(goldenGateBridgeReminder)
+        data.saveReminder(arcticReminder)
+        data.saveReminder(mountEtnaReminder)
 
         remindersList.loadReminders()
         coroutineRule.testScheduler.runCurrent()
