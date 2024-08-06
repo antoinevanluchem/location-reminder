@@ -86,6 +86,12 @@ class SaveReminderFragment : BaseFragment() {
 
             reminderData = ReminderDataItem(title, description, location, latitude, longitude)
 
+            val saveSuccessful = _viewModel.validateAndSaveReminder(reminderData!!)
+
+            if (!saveSuccessful) {
+                return@setOnClickListener
+            }
+
             val isForegroundPermissionAccepted = checkForegroundPermission()
             val isBackgroundPermissionAccepted = checkBackgroundPermission()
 
@@ -274,8 +280,6 @@ class SaveReminderFragment : BaseFragment() {
         geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
             addOnSuccessListener {
                 Timber.i("Successfully added geofence with id ${geofence.requestId}")
-                _viewModel.validateAndSaveReminder(reminderData!!)
-
             }
             addOnFailureListener {
                 _viewModel.showToast.value = requireContext().getString(R.string.error_adding_geofence)
