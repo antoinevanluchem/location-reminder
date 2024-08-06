@@ -75,8 +75,6 @@ class SaveReminderFragment : BaseFragment() {
             _viewModel.navigationCommand.value = NavigationCommand.To(directions)
         }
 
-        checkPermissions()
-
         binding.saveReminder.setOnClickListener {
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
@@ -86,11 +84,13 @@ class SaveReminderFragment : BaseFragment() {
 
             reminderData = ReminderDataItem(title, description, location, latitude, longitude)
 
-            val saveSuccessful = _viewModel.validateAndSaveReminder(reminderData!!)
+            val isValidReminderData = _viewModel.validateEnteredData(reminderData!!)
 
-            if (!saveSuccessful) {
+            if (!isValidReminderData) {
                 return@setOnClickListener
             }
+
+            checkPermissions()
 
             val isForegroundPermissionAccepted = checkForegroundPermission()
             val isBackgroundPermissionAccepted = checkBackgroundPermission()
@@ -277,9 +277,22 @@ class SaveReminderFragment : BaseFragment() {
             .addGeofence(geofence)
             .build()
 
+        val isForegroundPermissionAccepted = checkForegroundPermission()
+        val isBackgroundPermissionAccepted = checkBackgroundPermission()
+
+        if (!isForegroundPermissionAccepted){
+            Timber.i("Not adding geofence - foregroundPermission is not accepted")
+            return
+        }
+        if (!isBackgroundPermissionAccepted) {
+            Timber.i("Not adding geofence - backgroundPermission is not accepted")
+            return
+        }
+
         geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
             addOnSuccessListener {
                 Timber.i("Successfully added geofence with id ${geofence.requestId}")
+                _viewModel.validateAndSaveReminder(reminderData!!)
             }
             addOnFailureListener {
                 _viewModel.showToast.value = requireContext().getString(R.string.error_adding_geofence)
