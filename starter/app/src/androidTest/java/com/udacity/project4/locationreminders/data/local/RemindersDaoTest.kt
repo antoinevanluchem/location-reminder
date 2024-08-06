@@ -90,17 +90,25 @@ class RemindersDaoTest {
     }
 
     @Test
-    fun deleteAllReminders() = runTest {
+    fun getReminders() = runTest {
         database.reminderDao().saveReminder(goldenGateBridgeReminder)
         database.reminderDao().saveReminder(arcticReminder)
         database.reminderDao().saveReminder(mountEtnaReminder)
 
         val loaded = database.reminderDao().getReminders()
-
         assertThat(loaded.size, `is`(3))
+    }
+
+    @Test
+    fun deleteAllReminders() = runTest {
+        database.reminderDao().saveReminder(goldenGateBridgeReminder)
+        database.reminderDao().saveReminder(arcticReminder)
+        database.reminderDao().saveReminder(mountEtnaReminder)
+        assertThat(database.reminderDao().getReminders().size, `is`(3))
 
         database.reminderDao().deleteAllReminders()
-        val emptyDatabase = database.reminderDao().getReminders()
-        assertThat(emptyDatabase.size, `is`(0))
+
+        val loaded = database.reminderDao().getReminders()
+        assertThat(loaded.size, `is`(0))
     }
 }
