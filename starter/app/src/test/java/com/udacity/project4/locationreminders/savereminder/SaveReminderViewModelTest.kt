@@ -29,7 +29,7 @@ class SaveReminderViewModelTest {
     private lateinit var saveReminderViewModel: SaveReminderViewModel
 
     // Use a fake data source to be injected into the viewmodel
-    private lateinit var data: FakeDataSource
+    private lateinit var fakeDataSource: FakeDataSource
 
     //For unit testing, set the primary coroutine dispatcher.
     @ExperimentalCoroutinesApi
@@ -46,13 +46,13 @@ class SaveReminderViewModelTest {
     @Before
     fun setUpViewModel() {
         stopKoin()
-        data = FakeDataSource()
-        saveReminderViewModel = SaveReminderViewModel(context, data)
+        fakeDataSource = FakeDataSource()
+        saveReminderViewModel = SaveReminderViewModel(context, fakeDataSource)
     }
 
     @After
     fun clearData() = runTest {
-        data.deleteAllReminders()
+        fakeDataSource.deleteAllReminders()
     }
 
     @Test
@@ -142,7 +142,7 @@ class SaveReminderViewModelTest {
             `is`(context.getString(R.string.reminder_saved))
         )
 
-        val reminderDTO = (data.getReminders() as Success).data[0]
+        val reminderDTO = (fakeDataSource.getReminders() as Success).data[0]
         assertThat(reminderDTO.title, `is`(reminderDataItem.title))
         assertThat(reminderDTO.description, `is`(reminderDataItem.description))
         assertThat(reminderDTO.location, `is`(reminderDataItem.location))

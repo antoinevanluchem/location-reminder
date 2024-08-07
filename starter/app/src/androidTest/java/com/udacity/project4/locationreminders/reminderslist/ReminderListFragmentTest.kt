@@ -15,7 +15,6 @@ import androidx.test.filters.MediumTest
 import com.udacity.project4.R
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
-import com.udacity.project4.locationreminders.data.local.FakeDataSource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -33,6 +32,9 @@ import org.mockito.Mockito.mock
 import kotlin.test.Test
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import com.udacity.project4.locationreminders.data.local.LocalDB
+import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
+import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import org.hamcrest.CoreMatchers.not
 import org.mockito.Mockito.verify
 
@@ -54,17 +56,23 @@ class ReminderListFragmentTest : KoinTest {
         ReminderDTO("Go for a sauna", "Don't forget towel", "Mount Etna", 37.7510, 14.9934, "3")
 
     @Before
-    fun initRepository() {
+    fun init() {
         stopKoin()
         val myModule = module {
             viewModel {
                 RemindersListViewModel(
-                    get(), get()
+                    getApplicationContext(),
+                    get() as ReminderDataSource
                 )
             }
             single {
-                FakeDataSource() as ReminderDataSource
+                SaveReminderViewModel(
+                    getApplicationContext(),
+                    get() as ReminderDataSource
+                )
             }
+            single { RemindersLocalRepository(get()) as ReminderDataSource }
+            single { LocalDB.createRemindersDao(getApplicationContext()) }
         }
         startKoin {
             androidContext(getApplicationContext())

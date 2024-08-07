@@ -25,7 +25,7 @@ class RemindersListViewModelTest {
     private lateinit var remindersList: RemindersListViewModel
 
     // Use a fake data source to be injected into the viewmodel
-    private lateinit var data: FakeDataSource
+    private lateinit var fakeDataSource: FakeDataSource
 
     private val goldenGateBridgeReminder = ReminderDTO(
         "Practice diving",
@@ -52,13 +52,13 @@ class RemindersListViewModelTest {
     @Before
     fun setUpViewModel() {
         stopKoin()
-        data = FakeDataSource()
-        remindersList = RemindersListViewModel(ApplicationProvider.getApplicationContext(), data)
+        fakeDataSource = FakeDataSource()
+        remindersList = RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
     }
 
     @After
     fun clearData() = runTest {
-        data.deleteAllReminders()
+        fakeDataSource.deleteAllReminders()
     }
 
     @Test
@@ -72,9 +72,9 @@ class RemindersListViewModelTest {
 
     @Test
     fun loadReminders_WhenRemindersAddedToRemindersList_ThenHaveCorrectSizeAndShowNoDateIsFalse() = runTest {
-        data.saveReminder(goldenGateBridgeReminder)
-        data.saveReminder(arcticReminder)
-        data.saveReminder(mountEtnaReminder)
+        fakeDataSource.saveReminder(goldenGateBridgeReminder)
+        fakeDataSource.saveReminder(arcticReminder)
+        fakeDataSource.saveReminder(mountEtnaReminder)
 
         remindersList.loadReminders()
         coroutineRule.testScheduler.runCurrent()
@@ -86,7 +86,7 @@ class RemindersListViewModelTest {
 
     @Test
     fun loadReminders_WhenGetRemindersHasError_ThenShowSnackbarMessage() {
-        data.setReturnError(true)
+        fakeDataSource.setReturnError(true)
 
         remindersList.loadReminders()
         coroutineRule.testScheduler.runCurrent()
