@@ -65,6 +65,11 @@ class RemindersActivityTest :
     val grantAccessFineLocation: GrantPermissionRule =
         GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
 
+    @Rule
+    @JvmField
+    val grantAccessBackgroundLocation: GrantPermissionRule =
+        GrantPermissionRule.grant(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+
     @get:Rule
     val activityRule = ActivityScenarioRule(RemindersActivity::class.java)
 
@@ -79,7 +84,7 @@ class RemindersActivityTest :
 
     @Before
     fun checkSdkVersion() {
-        assumeTrue("Skipping test since it requires SDK < Q", Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+        assumeTrue("Skipping test since it requires SDK >= Q", Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
     }
 
     /**
