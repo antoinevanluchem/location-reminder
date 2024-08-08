@@ -1,6 +1,5 @@
 package com.udacity.project4
 
-import android.app.Activity
 import android.app.Application
 import android.os.Build
 import androidx.test.core.app.ActivityScenario
@@ -19,7 +18,6 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import androidx.test.rule.ActivityTestRule
 import androidx.test.rule.GrantPermissionRule
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
@@ -62,13 +60,11 @@ class RemindersActivityTest :
 
     @Rule
     @JvmField
-    val grantAccessFineLocation: GrantPermissionRule =
+    val grantPermissionsRule: GrantPermissionRule = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+    } else {
         GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
-
-    @Rule
-    @JvmField
-    val grantAccessBackgroundLocation: GrantPermissionRule =
-        GrantPermissionRule.grant(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+    }
 
     @get:Rule
     val activityRule = ActivityScenarioRule(RemindersActivity::class.java)
@@ -84,7 +80,7 @@ class RemindersActivityTest :
 
     @Before
     fun checkSdkVersion() {
-        assumeTrue("Skipping test since it requires SDK >= Q", Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        assumeTrue("Skipping test since it requires SDK <= Q", Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q)
     }
 
     /**
@@ -184,17 +180,15 @@ class RemindersActivityTest :
         onView(withId(R.id.saveLocationButton)).perform(click())
         onView(withId(R.id.saveReminder)).perform(click())
 
-//        This breaks the test, even though it is the recommended way to test a toast
-//        https://www.browserstack.com/guide/test-toast-message-using-espresso
-//        onView(withText(R.string.reminder_saved)).inRoot(
-//            withDecorView(
-//                CoreMatchers.not(
-//                    CoreMatchers.`is`(
-//                        getActivity(scenario).window.decorView
-//                    )
-//                )
-//            )
-//        ).check(matches(isDisplayed()))
+        onView(withText(R.string.reminder_saved)).inRoot(
+            withDecorView(
+                CoreMatchers.not(
+                    CoreMatchers.`is`(
+                        getActivity(scenario).window.decorView
+                    )
+                )
+            )
+        ).check(matches(isDisplayed()))
 
         scenario.close()
     }
