@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-08-07T15:17:40.373136Z">
+        <DropdownSelection timestamp="2024-08-08T07:28:32.109568Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/Q602336/.android/avd/Pixel_6a_API_29.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/Q602336/.android/avd/Pixel_XL_API_33.avd" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -27,6 +27,14 @@
       </SelectionState>
       <SelectionState runConfigName="showReminderSavedToast()">
         <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2024-08-08T07:28:04.043646Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/Q602336/.android/avd/Pixel_6a_API_28.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
       </SelectionState>
     </selectionStates>
   </component>
