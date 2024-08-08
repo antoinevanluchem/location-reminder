@@ -47,7 +47,7 @@ import kotlin.test.Test
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-@Config(maxSdk = Build.VERSION_CODES.P)
+@Config(maxSdk = Build.VERSION_CODES.Q)
 //END TO END test to black box test the app
 class RemindersActivityTest :
     KoinTest {// Extended Koin Test - embed autoclose @after method to close Koin after every test
