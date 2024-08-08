@@ -14,6 +14,7 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -40,6 +41,7 @@ import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import timber.log.Timber
+import kotlin.properties.Delegates
 
 class SaveReminderFragment : BaseFragment() {
 
@@ -210,7 +212,10 @@ class SaveReminderFragment : BaseFragment() {
     private val locationSettingsLauncher: ActivityResultLauncher<IntentSenderRequest> = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             Timber.i("locationSettingsLauncher RESULT_OK")
-            addGeofence()
+            requestNotificationPermission()
+            if(notificationsAllowed) {
+                addGeofence()
+            }
         } else {
             // Endless loop until user decides to turn on location.
             checkDeviceLocationSettingsAndAddGeofence()
@@ -248,9 +253,49 @@ class SaveReminderFragment : BaseFragment() {
         locationSettingsResponseTask.addOnCompleteListener {
             if ( it.isSuccessful ) {
                 Timber.i("locationSettingsResponseTask successful!")
-                addGeofence()
+
+                requestNotificationPermission()
+                if(notificationsAllowed) {
+                    addGeofence()
+                }
             }
         }
+    }
+
+    //
+    // Notifications
+    //
+    private var notificationsAllowed = false
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), RC_NOTIFICATION)
+        } else {
+            notificationsAllowed = true
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == RC_NOTIFICATION) {
+            notificationsAllowed = if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                addGeofence()
+                true
+            } else {
+                showPleaseAllowNotificationsToast()
+                false
+            }
+        }
+    }
+
+    private fun showPleaseAllowNotificationsToast() {
+        Toast.makeText(requireContext(), getString(R.string.please_allow_notifications), Toast.LENGTH_SHORT)
+            .show()
     }
 
     //
@@ -302,3 +347,5 @@ class SaveReminderFragment : BaseFragment() {
 }
 
 private const val GEOFENCE_RADIUS_IN_METERS = 100f
+private const val RC_NOTIFICATION = 99
+
