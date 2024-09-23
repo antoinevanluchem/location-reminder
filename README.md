@@ -1,3 +1,58 @@
+# Code Review
+## Reviewer Note 
+> Congrats! Your hard work has paid off!
+> 
+> You made all the required changes pointed out in the previous review(s) and are now ready to move on to the next stage!
+> 
+> Keep up the good work as you continue your Nanodegree journey! Safe journey and bon voyage! 😄
+
+## User Authentication 
+✅ Enable user accounts using Firebase Authentication and Firebase UI
+> While customization in other screens of FirebaseUI is limited to themes, we have the full power to customize Login UI with our own XML layout. You can learn more [here](https://github.com/firebase/FirebaseUI-Android/blob/master/auth/README.md#custom-layout).
+
+✅ Create Login and Registration screens
+> Your login/signin screen meets this spec! 👍
+> 
+> A successful login/signin screen is all about making a good first impression. As app developers, we all want our users to fall in love at first sight. In the first few minutes of using our app, our users must feel welcome. These screens must be simple and clear.
+
+## Map View 
+✅ Style the map 
+> The user's current location is properly shown! Nice work! 👍 This app is a location finder app after all so being able to properly retrieve the user's current location is a top priority!
+
+✅ Create a Map view that shows the user's current location 
+✅ Add functionaility to allow the user to select POIs to set reminders 
+✅ Display a notification when a selected POI is reached
+
+## Reminders 
+✅ Add a list view that displays the reminders
+> [RecyclerView: "Introduction" (Developing Android Apps with Kotlin -Part 2 -> 3. Introduction)](https://learn.udacity.com/nanodegrees/nd940/parts/cd0636/lessons/c1fc6e4c-905a-4afc-a6d1-d9b05b5d4a35/concepts/a2c72d20-277a-481c-9fee-692fb785a9af) is correctly implemented to display all reminders in the location DB! 👍 It has the [ViewHolder](https://developer.android.com/develop/ui/views/layout/recyclerview#implement-adapter) pattern built right in! You can also check [this](https://www.youtube.com/watch?v=LqBlYJTfLP4) out.
+>
+
+✅ Add a screen to create reminders
+> Nice work here! It shows that you have mastered two-way data binding! Two-way data binding lets you consolidate setting attributes by allowing you to set values and react to changes at the same time. [Here](https://www.youtube.com/watch?v=u8d_zXukB2w) is a very interesting tutorial about advanced data binding.
+> 
+> And you have a centralized [repository ("Exercise: Build a Repository")](https://learn.udacity.com/nanodegrees/nd940) to get information from your backend, which is your local DB! 👍 Even though the repository module looks unnecessary, it serves an important purpose: it abstracts the data sources from the rest of the app!
+> 
+✅ Display details about a reminder when a selected POI is reached and the user clicked on the notification 
+
+## Testing 
+✅ Test the ViewModels, Coroutines and LiveData
+✅ Create a FakeDataSource to replace the Data Layer and test the app in isolation 
+✅ Test DAO and Repository classes 
+> An in-memory database is used for tests! 👍 One of the many benefits of testing using an in-memory database is that the test doesn't need to worry about rolling back the test when done.
+✅ Use MVVM and Dependency injection to architect your app 
+> The MVVM design pattern is properly implemented for your app! 👍
+✅ Use Espresso and Mockito to test the app UI and Fragments Navigation
+
+## Code Quality 
+✅ Write code using best practices for Android development with Kotlin
+> Good naming has the following benefits:
+> 
+> Improved Communication
+> Improved Code integration
+> Improved Consistency
+> Improved clarity
+
 # Location Reminder
 
 A Todo list app with location reminders that remind the user to do something when he reaches a specific location. The app will require the user to create an account and login to set and access reminders.
